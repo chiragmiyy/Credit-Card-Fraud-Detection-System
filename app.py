@@ -1,94 +1,128 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import joblib
+import os
+import cloudpickle
+import gdown
 
-# Load model
-model = joblib.load("fraud_model.pkl")
+FILE_ID = "1gatdvbTPXR1C2EDvYU26THcvAGIvoQbx"
+MODEL_PATH = "credit_card_fraud_model.pkl"
 
-# --- Page Config ---
-st.set_page_config(page_title="💳 Fraud Detection App", layout="wide")
+def download_model():
+    url = f"https://drive.google.com/uc?id={FILE_ID}"
+    gdown.download(url, MODEL_PATH, quiet=False)
 
-# --- Sidebar ---
-st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["🔢 Predict via Input", "📁 Batch CSV Upload", "🧪 Use Sample Transaction"])
+if not os.path.exists(MODEL_PATH):
+    with st.spinner('Downloading the model... Please wait ⏳'):
+        download_model()
 
-# --- Header ---
-st.markdown("<h1 style='text-align: center;'>💳 Credit Card Fraud Detection</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Detect fraudulent transactions using a trained machine learning model.</p>", unsafe_allow_html=True)
-st.markdown("---")
+from sklearn.compose import _column_transformer
+class _RemainderColsList(list): pass
+_column_transformer._RemainderColsList = _RemainderColsList
 
-# --- Helper: Display Result ---
-def display_result(pred, prob=None):
-    if pred == 1:
-        st.error("⚠️ **Fraudulent Transaction Detected!**")
-    else:
-        st.success("✅ **Legitimate Transaction**")
+try:
+    with open(MODEL_PATH, "rb") as f:
+        model = cloudpickle.load(f)
+except Exception as e:
+    st.error(f"Error loading model: {e}")
+    st.stop()
 
-    if prob is not None:
-        st.info(f"📈 **Fraud Probability**: `{prob:.2%}`")
+st.set_page_config(
+    page_title="💳 Credit Card Fraud Detection",
+    page_icon="🚨",
+    layout="centered",
+    initial_sidebar_state="expanded"
+)
 
-# --- Page 1: Manual Input ---
-if page == "🔢 Predict via Input":
-    st.header("📝 Paste Comma-Separated Input")
-    st.write("Enter 30 values separated by commas (Time, V1–V28, Amount):")
+st.markdown("""
+<style>
+    .main {
+        background-color: #f5f7fa;
+        padding: 2rem 4rem 4rem 4rem;
+        border-radius: 15px;
+        box-shadow: 0 8px 30px rgb(0 0 0 / 0.12);
+    }
+    .stButton>button {
+        background-color: #FF4B4B;
+        color: white;
+        font-weight: bold;
+        border-radius: 10px;
+        height: 3rem;
+        width: 100%;
+        font-size: 18px;
+        transition: background-color 0.3s ease;
+    }
+    .stButton>button:hover {
+        background-color: #ff2a2a;
+        color: white;
+    }
+    .stSelectbox>div>div>div>select {
+        font-weight: 600;
+        font-size: 16px;
+        padding: 0.4rem;
+    }
+    .stNumberInput>div>input {
+        font-size: 16px;
+        font-weight: 600;
+        padding: 0.5rem;
+    }
+    h1 {
+        color: #FF4B4B;
+        font-weight: 700;
+    }
+    .prediction {
+        font-size: 20px;
+        font-weight: 700;
+        margin-top: 1rem;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-    raw_input = st.text_area("Input:", height=120, placeholder="e.g. 0.0, -1.3598, ..., 149.62")
+st.markdown("<h1>💳 Credit Card Fraud Detection System</h1>", unsafe_allow_html=True)
+st.markdown("### Enter the transaction details below to check for fraud.")
 
-    threshold = st.slider("🎯 Prediction Threshold", 0.0, 1.0, 0.5, 0.01)
+with st.form(key="fraud_form"):
+    col1, col2 = st.columns(2)
 
-    if st.button("🔍 Predict"):
-        try:
-            input_data = [float(x.strip()) for x in raw_input.split(",")]
-            if len(input_data) != 30:
-                st.warning("⚠️ Please enter exactly 30 values.")
-            else:
-                proba = model.predict_proba([input_data])[0][1]
-                prediction = int(proba > threshold)
-                display_result(prediction, proba)
-        except Exception as e:
-            st.error(f"❌ Invalid input: {e}")
-
-# --- Page 2: CSV Upload ---
-elif page == "📁 Batch CSV Upload":
-    st.header("📤 Upload CSV File")
-    uploaded_file = st.file_uploader("Upload a CSV file with 30 columns", type=["csv"])
-
-    if uploaded_file:
-        try:
-            df = pd.read_csv(uploaded_file)
-            if df.shape[1] < 30:
-                st.warning("⚠️ The CSV must contain at least 30 columns.")
-            else:
-                input_data = df.iloc[:, :30]
-                predictions = model.predict(input_data)
-                proba = model.predict_proba(input_data)[:, 1]
-                df['Prediction'] = predictions
-                df['Fraud Probability'] = proba
-                df['Label'] = df['Prediction'].map({0: 'Legitimate', 1: 'Fraud'})
-                st.success("✅ Predictions generated!")
-                st.dataframe(df)
-
-                # Download
-                csv = df.to_csv(index=False).encode('utf-8')
-                st.download_button("📥 Download CSV with Predictions", data=csv, file_name="fraud_predictions.csv", mime="text/csv")
-        except Exception as e:
-            st.error(f"❌ Error: {e}")
-
-# --- Page 3: Sample Transaction ---
-elif page == "🧪 Use Sample Transaction":
-    st.header("🎯 Predict on a Sample Transaction")
-
-    sample_input = [0.0, -1.35980713, -0.07278117, 2.53634674, 1.37815522,
-                    -0.33832077, 0.46238778, 0.23959855, 0.0986979, 0.36378697,
-                    0.09079417, -0.55159953, -0.61780086, -0.99138985, -0.31116935,
-                    1.46817697, -0.47040053, 0.20797124, 0.02579058, 0.40399296,
-                    0.2514121, -0.01830678, 0.27783757, -0.11047391, 0.06692807,
-                    0.12853936, -0.18911484, 0.13355838, -0.02105305, 149.62]
-
-    st.code(", ".join(str(round(x, 4)) for x in sample_input), language='text')
+    with col1:
+        transaction_type = st.selectbox(
+            "Transaction Type", ['PAYMENT', 'CASH_OUT', 'TRANSFER', 'DEPOSIT']
+        )
+        amount = st.number_input(
+            "Transaction Amount", min_value=0.0, value=1000.0, step=1.0, format="%.2f"
+        )
+        oldbalanceOrg = st.number_input(
+            "Sender's Old Balance", min_value=0.0, value=5000.0, step=1.0, format="%.2f"
+        )
     
-    if st.button("Predict Sample"):
-        proba = model.predict_proba([sample_input])[0][1]
-        prediction = int(proba > 0.5)
-        display_result(prediction, proba)
+    with col2:
+        newbalanceOrig = st.number_input(
+            "Sender's New Balance", min_value=0.0, value=4000.0, step=1.0, format="%.2f"
+        )
+        oldbalanceDest = st.number_input(
+            "Receiver's Old Balance", min_value=0.0, value=1000.0, step=1.0, format="%.2f"
+        )
+        newbalanceDest = st.number_input(
+            "Receiver's New Balance", min_value=0.0, value=2000.0, step=1.0, format="%.2f"
+        )
+
+    submitted = st.form_submit_button("🚨 Predict Fraud")
+
+if submitted:
+    try:
+        input_data = pd.DataFrame([{
+            'type': transaction_type,
+            'amount': amount,
+            'oldbalanceOrg': oldbalanceOrg,
+            'newbalanceOrig': newbalanceOrig,
+            'oldbalanceDest': oldbalanceDest,
+            'newbalanceDest': newbalanceDest
+        }])
+
+        prediction = model.predict(input_data)
+
+        if prediction[0] == 1:
+            st.error("⚠️ Fraudulent Transaction Detected!")
+        else:
+            st.success("✅ Legitimate Transaction")
+    except Exception as e:
+        st.error(f"Prediction failed: {e}")
