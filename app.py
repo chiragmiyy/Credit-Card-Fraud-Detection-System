@@ -77,7 +77,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h1>💳 Credit Card Fraud Detection System</h1>", unsafe_allow_html=True)
+st.markdown("<h1>💳 Swipe Shield</h1>", unsafe_allow_html=True)
 st.markdown("### Enter the transaction details below to check for fraud.")
 
 with st.form(key="fraud_form"):
