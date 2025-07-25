@@ -1,4 +1,4 @@
-<img width="1690" height="1754" alt="image" src="https://github.com/user-attachments/assets/5a75eee4-aa26-4b14-85e1-23bc70703353" /># 💳 Swipe Shield – Credit Card Fraud Detection System
+# 💳 Swipe Shield – Credit Card Fraud Detection System
 
 🚀 **June 2025 – July 2025**  
 🔗 [GitHub](https://github.com/chiragmiyy/Credit-Card-Fraud-Detection-System) | [WebApp](https://credit-card-fraud-detection-system-chiragmiyy.streamlit.app)  
