@@ -1,4 +1,4 @@
-# 💳 Swipe Shield – Credit Card Fraud Detection System
+<img width="1690" height="1754" alt="image" src="https://github.com/user-attachments/assets/5a75eee4-aa26-4b14-85e1-23bc70703353" /># 💳 Swipe Shield – Credit Card Fraud Detection System
 
 🚀 **June 2025 – July 2025**  
 🔗 [GitHub](https://github.com/chiragmiyy/Credit-Card-Fraud-Detection-System) | [WebApp](https://credit-card-fraud-detection-system-chiragmiyy.streamlit.app)  
@@ -75,7 +75,8 @@ After submitting the input, the model returns a prediction:
 
 Real-time fraud prediction with user input simulation.
 
-📌 *Don't have a screenshot? You can take one using `Cmd+Shift+4` on macOS or `Snipping Tool` on Windows and place it in a `screenshots/` folder.*
+<img width="1690" height="1754" alt="image" src="https://github.com/user-attachments/assets/b2a5879a-fcd8-4b54-a39c-540883098085" />
+
 
 ---
 
