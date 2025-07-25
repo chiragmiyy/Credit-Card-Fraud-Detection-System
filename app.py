@@ -3,8 +3,6 @@ import pandas as pd
 import os
 import cloudpickle
 import gdown
-
-# Download model if not exists
 FILE_ID = "1gatdvbTPXR1C2EDvYU26THcvAGIvoQbx"
 MODEL_PATH = "credit_card_fraud_model.pkl"
 
@@ -120,9 +118,7 @@ if submitted:
 
     try:
         prediction = model.predict(input_data)
-        proba = model.predict_proba(input_data)[0][1] * 100  # Confidence in class 1 (fraud)
-
-        # Suspicious pattern detection
+        proba = model.predict_proba(input_data)[0][1] * 100 
         suspicious = []
         if amount == 0:
             suspicious.append("Amount is $0.00")
@@ -130,8 +126,6 @@ if submitted:
             suspicious.append("Sender's balance did not change")
         if newbalanceDest == oldbalanceDest:
             suspicious.append("Receiver's balance did not change")
-
-        # Result box
         if prediction[0] == 1:
             st.error("⚠️ Fraudulent Transaction Detected!")
         else:
